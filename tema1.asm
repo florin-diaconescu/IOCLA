@@ -35,6 +35,7 @@ substraction:
     cmp eax, 0
     jne negative_op ;daca da, inseamna ca e operand negativ, nu operandul "-"
     
+    xor eax, eax
     pop edx
     pop eax
     sub eax, edx
@@ -53,7 +54,6 @@ multiplication:
 division:
     xor edx, edx
     pop ecx
-    cdq
     pop eax
     cdq
     idiv ecx
@@ -99,9 +99,6 @@ blabel:
     cld
     rep movsb ;mut in buffer operatorul/operandul
     
-    ;PRINT_STRING buffer ;debugging purposes
-    ;NEWLINE
-    
     cmp byte [buffer], 42 ;inmultire
     je multiplication
     
@@ -121,14 +118,13 @@ blabel:
  
 negative_op:   
     push eax
-    ;add esp, 4
 
 next_op:    
     mov edi, [global_edi] ;restaurez edi
     sub [length], edi
     add [current_pos], edi
     
-    cmp byte [length], 0
+    cmp word [length], 0
     je over
     jne blabel
     
@@ -137,5 +133,6 @@ over:
     PRINT_DEC 4, eax
 
     xor eax, eax
+    mov esp, ebp
     pop ebp
     ret
