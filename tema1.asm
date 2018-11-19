@@ -10,27 +10,49 @@ section .bss
 section .data
     length: dd 0
     current_pos: dd 0
+    global_edi: dd 0
 
 section .text
     global CMAIN
     extern puts
     extern scanf
+    extern atoi
     
 addition:
-    push ebp
-    mov ebp, esp
+    pop eax
+    pop edx
+    ;sub esp, 8
+    add eax, edx
+    push eax
+    
+    ;add esp, 4
+    jmp next_op
     
 substraction:
-    push ebp
-    mov ebp, esp
+    pop edx
+    pop eax
+    sub eax, edx
+    
+    push eax
+    jmp next_op
     
 multiplication:
-    push ebp
-    mov ebp, esp
+    pop edx
+    pop eax
+    imul edx
+    
+    push eax
+    jmp next_op
     
 division:
-    push ebp
-    mov ebp, esp
+    xor edx, edx
+    pop ecx
+    pop eax
+    cdq
+    idiv ecx
+    
+    push eax
+    jmp next_op
 
 CMAIN:
     mov ebp, esp; for correct debugging
@@ -61,7 +83,7 @@ blabel:
     
     sub edi, esi
     
-    push edi ;salvez edi pe stiva
+    mov [global_edi], edi
     
     mov ecx, edi
     mov esi, expr
@@ -70,20 +92,41 @@ blabel:
     cld
     rep movsb ;mut in buffer operatorul/operandul
     
-    PRINT_STRING buffer ;debugging purposes
-    NEWLINE
+    ;PRINT_STRING buffer ;debugging purposes
+    ;NEWLINE
     
-    pop edi ;restaurez edi
+    cmp byte [buffer], 42 ;inmultire
+    je multiplication
+    
+    cmp byte [buffer], 43 ;adunare
+    je addition
+    
+    cmp byte [buffer], 45 ;scadere
+    je substraction
+    
+    cmp byte [buffer], 47 ;impartire
+    je division
+    
+    mov ebx, buffer
+    push ebx
+    call atoi
+    add esp, 4
+    
+    push eax
+    ;add esp, 4
+
+next_op:    
+    mov edi, [global_edi] ;restaurez edi
     sub [length], edi
     add [current_pos], edi
     
     cmp byte [length], 0
-    
     je over
     jne blabel
     
 over:
-    
+    pop eax
+    PRINT_DEC 4, eax
 
     xor eax, eax
     pop ebp
