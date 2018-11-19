@@ -21,14 +21,20 @@ section .text
 addition:
     pop eax
     pop edx
-    ;sub esp, 8
     add eax, edx
-    push eax
     
-    ;add esp, 4
+    push eax
     jmp next_op
     
 substraction:
+    mov ebx, buffer
+    push ebx
+    call atoi
+    add esp, 4
+    
+    cmp eax, 0
+    jne negative_op ;daca da, inseamna ca e operand negativ, nu operandul "-"
+    
     pop edx
     pop eax
     sub eax, edx
@@ -47,6 +53,7 @@ multiplication:
 division:
     xor edx, edx
     pop ecx
+    cdq
     pop eax
     cdq
     idiv ecx
@@ -106,12 +113,13 @@ blabel:
     
     cmp byte [buffer], 47 ;impartire
     je division
-    
+  
     mov ebx, buffer
     push ebx
     call atoi
     add esp, 4
-    
+ 
+negative_op:   
     push eax
     ;add esp, 4
 
