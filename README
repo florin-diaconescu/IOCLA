@@ -1,0 +1,40 @@
+//Diaconescu Florin, 322CB
+
+---------------------------POSTFIX EXPRESSION CALCULATOR-----------------------
+
+Tema urmareste implementarea unui calculator pentru expresii in forma postfixata,
+oferind suport pentru operatiile de baza, adunarea, scaderea, inmultirea si
+impartirea.
+
+In implementarea temei, doresc sa construiesc un parser pentru expresia citita
+initial cu macro-ul GET_STRING, astfel incat, o data determinata lungimea totala
+a string-ului (salvata in length), incep sa caut operatori din spatiu in spatiu,
+folosindu-ma de scasb, astfel ca operatorii (sau operanzii) vor avea lungimea
+EDI - ESI, pe care voi vrea sa o pastrez in mod global, pentru a putea actualiza
+lungimea expresiei ramasa de evaluat, precum si incrementarea lui current_pos,
+care are ca rol pastrarea pozitii curente a caracterului urmator de la care se
+va face ulterior (evident, daca mai este cazul) parsarea.
+
+Cu ajutorul movsb, imi mut in buffer cuvantul dintre doua spatii, apoi voi incepe
+sa verific (facand cmp intre primul caracter al buffer-ului si codul ascii aferent
+simbolului operatiilor) daca este un operator, in caz afirmativ sarind neconditionat
+la label-ul corespunzator operatiei, iar altfel ma voi folosi de functia externa
+atoi pentru transformarea buffer-ului din string in atoi (deci este operand).
+
+Functionalitatea functiilor de la label-urile corespunzatoare operatiilor este
+una simpla si similara, facand pop la doi operanzi, realizand operatia (prin add,
+sum, imult sau idiv, combinat cu cdq pentru extinderea lui EAX) si apoi sarind
+la label-ul next_op. Un caz special ce a trebuit tratat a fost acela ca un "-"
+este posibil sa reprezinte fie operatia de scadere, fie inceputul unui numar
+negativ, asa ca in functia de la substraction voi incerca sa transform buffer-ul
+in numar, prin atoi, iar daca rezultatul este 0 inseamna ca este chiar semnul,
+"-", in caz contrar urmand sa il tratez ca un operand, sarind la next_op si
+adaugandu-l in stiva.
+
+Algoritmul pentru evaluarea propriu-zisa a expresiei postfixate este cel descris
+pe Wikipedia (in articolul Reverse Polish Notation), astfel ca, pentru fiecare
+token (respectiv buffer-ul meu), daca este operator, dau pop la doi operanzi,
+urmand sa realizez operatia corespunzatoare si sa dau push la rezultat inapoi
+pe stiva. Daca, in schimb, este operand, ii dau push direct pe stiva. La final, 
+cand nu va mai fi nimic de parsat din expresie, voi da pop de pe stiva, acela
+fiind rezultatul final ce va trebui, de asemenea, afisat.
