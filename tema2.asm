@@ -16,6 +16,7 @@ error_cannot_read: db "Error: Cannot read input file %s", 10, 0
 section .text
 global main
 
+;-----------------TASK1-------------------------
 xor_strings:
         ;TASK 1
         push ebp
@@ -38,6 +39,7 @@ end_task1:
         leave
         ret
 
+;-------------------TASK2--------------------
 rolling_xor:
 	;TASK 2
         push ebp
@@ -72,10 +74,107 @@ end_task2:
         leave
         ret
 
+;--------------------TASK3-------------------
 xor_hex_strings:
-	; TODO TASK 3
-	ret
+	;TASK 3
 
+        push ebp
+        mov ebp, esp
+        
+        mov eax, [ebp + 8]  ;encoded_string in hex
+        push eax ;salvez pe stiva inceputul string
+        mov ebx, [ebp + 12] ;key in hex
+        push ebx ;salvez pe stiva inceputul cheii
+        
+        mov edi, eax
+        xor ecx, ecx
+        
+convert_string:
+        mov cl, byte [eax]
+        cmp cl, 57 ;ASCII code for 9
+        jle is_number
+        sub cl, 'a';valoare - 'a' + 10
+        add cl, 10
+        jmp next_byte
+        
+is_number:
+        sub cl, 48 ;ca sa aduc la o val 0-9
+        
+next_byte:
+        mov dl, byte [eax + 1]
+        cmp dl, 57
+        jle is_number2
+        sub dl, 'a'
+        add dl, 10
+        jmp binary_string
+        
+is_number2:
+        sub dl, 48
+        
+binary_string:
+        shl cl, 4
+        add cl, dl
+        mov byte [edi], cl
+        inc edi
+        add eax, 2
+        cmp byte [eax], 0x00
+        jne convert_string
+        
+        mov byte [edi], 0x00
+        mov esi, ebx
+        xor ecx, ecx
+        
+convert_key:
+        mov cl, byte [ebx]
+        cmp cl, 57
+        jle is_number_k
+        sub cl, 'a'
+        add cl, 10
+        jmp next_byte_k
+        
+is_number_k:
+        sub cl, 48
+        
+next_byte_k:
+        mov dl, byte [ebx + 1]
+        cmp dl, 57
+        jle is_number_k2
+        sub dl, 'a'
+        add dl, 10
+        jmp binary_key
+        
+is_number_k2:
+        sub dl, 48
+        
+binary_key:
+        shl cl, 4
+        add cl, dl
+        mov byte [esi], cl
+        inc esi
+        add ebx, 2
+        cmp byte [ebx], 0x00
+        jne convert_key
+        
+        mov byte [esi], 0x00
+        
+        pop ebx
+        pop eax
+            
+xor_another_byte:
+        mov cl, byte [eax]
+        mov dl, byte [ebx]
+        xor cl, dl
+        mov byte [eax], cl
+        inc eax
+        inc ebx
+        cmp byte [eax], 0x00
+        jne xor_another_byte
+
+end_task3:
+        leave        
+        ret
+
+;--------------------TASK4-------------------------
 base32decode:
 	; TODO TASK 4
 	ret
@@ -198,8 +297,19 @@ task2:
 task3:
 	; TASK 3: XORing strings represented as hex strings
 
-	; TODO TASK 1: find the addresses of both strings
-	; TODO TASK 1: call the xor_hex_strings function
+        xor eax, eax
+sizeof_string3:
+        inc eax
+        cmp byte [ecx + eax - 1], 0x00
+        jne sizeof_string3
+
+        push ecx
+        add eax, ecx
+        push eax
+        call xor_hex_strings
+        
+        pop ecx
+        add esp, 4
 
 	push ecx                     ;print resulting string
 	call puts
