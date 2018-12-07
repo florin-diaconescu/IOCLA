@@ -1,6 +1,7 @@
 extern puts
 extern printf
 extern strlen
+extern strstr
 
 %define BAD_ARG_EXIT_CODE -1
 
@@ -179,10 +180,104 @@ base32decode:
 	; TODO TASK 4
 	ret
 
+;--------------------TASK5-------------------------
 bruteforce_singlebyte_xor:
 	; TODO TASK 5
-	ret
+        push ebp
+        mov ebp, esp
+     
+        mov ecx, [ebp + 8]
+  
+        xor edx, edx
+        mov edx, 1
+bruteforce:
+        push edx
+        xor ebx, ebx
+        push ecx
+        
+bruteforce_loop:
+        mov bh, byte [ecx]
+        mov bl, dl
+        xor bh, bl
+        mov byte [ecx], bh
+        inc ecx
+        cmp byte [ecx], 0x00
+        jne bruteforce_loop
+       
+        pop ecx
+labely:      
+        push ecx
+                
+f:
+        cmp byte [ecx], 0x00
+        je restore_string
+        xor edx, edx
+        cmp byte [ecx], 'f'
+        je o
+        jne before_f
+        
+o:
+        inc ecx
+        inc edx
+        cmp byte [ecx], 'o'
+        je r
+        jne before_f
+        
+r:
+        inc ecx
+        inc edx
+        cmp byte [ecx], 'r'
+        je c
+        jne before_f
+        
+c:
+        inc ecx
+        inc edx
+        cmp byte [ecx], 'c'
+        je e
+        jne before_f
+        
+e:
+        inc ecx
+        inc edx
+        cmp byte [ecx], 'e'
+        je got_the_key
 
+before_f:
+        sub ecx, edx
+        inc ecx
+        jmp f
+        
+restore_string:
+        pop ecx
+        pop edx
+        push ecx
+        ;cmp dl, 0xFF
+        ;je got_the_key
+        
+restore_string_loop:
+        mov bh, byte [ecx]
+        mov bl, dl
+        xor bh, bl
+        mov byte [ecx], bh
+        inc ecx
+        cmp byte [ecx], 0x00
+        jne restore_string_loop
+        je final_restore
+        
+final_restore:
+        pop ecx
+        inc edx
+        ;add esp, 4
+        jmp bruteforce
+        
+got_the_key:
+        xor eax, eax
+        mov al, dl
+        leave
+        ret
+
+;--------------------TASK6-------------------------
 decode_vigenere:
 	; TODO TASK 6
 	ret
@@ -258,15 +353,14 @@ task1:
 	; TASK 1: Simple XOR between two byte streams
 
 	;find the address for the string and the key
-        xor eax, eax
-sizeof_string:
-        inc eax
-        cmp byte [ecx + eax - 1], 0x00
-        jne sizeof_string
-        
-	;call the xor_strings function
         push ecx
-        add eax, ecx
+	call strlen
+	pop ecx
+
+	add eax, ecx
+	inc eax
+
+        push ecx
         push eax
         call xor_strings
         
@@ -297,14 +391,14 @@ task2:
 task3:
 	; TASK 3: XORing strings represented as hex strings
 
-        xor eax, eax
-sizeof_string3:
-        inc eax
-        cmp byte [ecx + eax - 1], 0x00
-        jne sizeof_string3
+        push ecx
+	call strlen
+	pop ecx
+
+	add eax, ecx
+	inc eax
 
         push ecx
-        add eax, ecx
         push eax
         call xor_hex_strings
         
@@ -332,10 +426,14 @@ task5:
 	; TASK 5: Find the single-byte key used in a XOR encoding
 
 	; TODO TASK 5: call the bruteforce_singlebyte_xor function
+        push ecx
+        call bruteforce_singlebyte_xor
+        
+        pop ecx
 
 	push ecx                    ;print resulting string
 	call puts
-	pop ecx
+        add esp, 4
 
 	push eax                    ;eax = key value
 	push fmtstr
