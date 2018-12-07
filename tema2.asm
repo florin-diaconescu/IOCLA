@@ -272,6 +272,9 @@ final_restore:
         jmp bruteforce
         
 got_the_key:
+        pop ecx
+        pop edx
+        
         xor eax, eax
         mov al, dl
         leave
@@ -430,11 +433,12 @@ task5:
         call bruteforce_singlebyte_xor
         
         pop ecx
-
+        push eax
 	push ecx                    ;print resulting string
 	call puts
         add esp, 4
-
+        
+        pop eax
 	push eax                    ;eax = key value
 	push fmtstr
 	call printf                 ;print key value
