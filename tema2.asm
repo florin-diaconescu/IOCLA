@@ -268,7 +268,6 @@ restore_string_loop:
 final_restore:
         pop ecx
         inc edx
-        ;add esp, 4
         jmp bruteforce
         
 got_the_key:
@@ -283,8 +282,56 @@ got_the_key:
 ;--------------------TASK6-------------------------
 decode_vigenere:
 	; TODO TASK 6
-	ret
+        push ebp
+        mov ebp, esp
+        
+        mov ecx, [ebp + 8]  ;string-ul
+        mov eax, [ebp + 12] ;cheia
+        push eax
+        
+vigenere_one_byte:
+        mov dl, byte [ecx]
+        cmp dl, 'a'
+        jl skip_key
+        cmp dl, 'z'
+        jg skip_key
+        mov dh, byte [eax]
+        sub dh, 'a'
+        sub dl, dh
+        cmp dl, 'a'
+        jl fix_vigenere
+        mov byte [ecx], dl
+        jmp next_vigenere_byte
+  
+fix_vigenere:
+        mov dh, 'z'
+        mov bh, 'a'
+        sub bh, dl
+        sub dh, bh
+        inc dh
+        mov byte [ecx], dh          
+                    
+next_vigenere_byte:
+        inc eax
+        
+skip_key:
+        cmp byte [eax], 0x00
+        je repeat_key
+        jne final_thing
+        
+repeat_key:
+        pop eax
+        push eax
+        
+final_thing:
+        inc ecx
+        cmp byte [ecx], 0x00
+        jne vigenere_one_byte
+        
+        leave
+        ret
 
+;------------------MAIN-----------------------
 main:
 	push ebp
 	mov ebp, esp
