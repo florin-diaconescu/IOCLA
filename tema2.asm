@@ -1,7 +1,6 @@
 extern puts
 extern printf
 extern strlen
-extern strstr
 
 %define BAD_ARG_EXIT_CODE -1
 
@@ -178,7 +177,183 @@ end_task3:
 ;--------------------TASK4-------------------------
 base32decode:
 	; TODO TASK 4
-	ret
+        push ebp
+        mov ebp, esp
+        
+        mov ecx, [ebp + 8]
+        
+        push ecx
+        call strlen ;in eax lungimea 
+        pop ecx
+        
+        dec eax
+        shr eax, 3 ;numarul de repetari in loop in eax
+        xor esi, esi
+        mov esi, ecx
+        
+decode_loop:
+        xor ebx, ebx
+        mov bl, byte [ecx]
+        cmp bl, 'A' ; mai mic, inseamna cifra
+        jl decode_number
+        sub bl, 65 ;pentru trecerea in alfabetul base32
+        jmp get_second
+        
+decode_number:
+        sub bl, 24
+        
+get_second:
+        xor edx, edx
+        shl bl, 3
+        mov dl, byte [ecx + 1]
+        cmp dl, 'A'
+        jl decode_number_2
+        sub dl, 65
+        jmp get_third
+        
+decode_number_2:
+        sub dl, 24
+        
+get_third:
+        push edx
+        shr dl, 2
+        or ebx, edx ;am primul byte
+        mov byte [esi], bl
+        inc esi
+        xor edx, edx
+        pop edx ;restaurez
+        shl dl, 6
+        mov bl, byte [ecx + 2]
+        cmp bl, 'A'
+        jl decode_number_3
+        sub bl, 65
+        jmp get_fourth
+        
+decode_number_3:
+        sub bl, 24
+        
+get_fourth:
+        shl bl, 1
+        or dl, bl
+        mov bl, byte [ecx + 3]
+        cmp bl, 'A'
+        jl decode_number_4
+        sub bl, 65
+        jmp get_fifth
+        
+decode_number_4:
+        sub bl, 24
+        
+get_fifth:
+        push ebx
+        shr bl, 4
+        or dl, bl ;inca un byte
+        mov byte [esi], dl
+        inc esi
+        pop ebx
+        shl bl, 4
+        xor edx, edx
+        mov dl, byte [ecx + 4]
+        cmp dl, 'A'
+        jl decode_number_5
+        sub dl, 65
+        jmp get_sixth
+        
+decode_number_5:
+        cmp dl, '='
+        je is_equal_5
+        sub dl, 24
+        jmp get_sixth
+        
+is_equal_5:
+        xor edx, edx
+        
+get_sixth:
+        push edx
+        shr dl, 1
+        or bl, dl ;inca unul
+        mov byte [esi], bl
+        inc esi
+        pop edx
+        shl dl, 7
+        xor ebx, ebx
+        mov bl, byte [ecx + 5]
+        cmp bl, 'A'
+        jl decode_number_6
+        sub bl, 65
+        jmp get_seventh
+        
+decode_number_6:
+        cmp bl, '='
+        je is_equal_6
+        sub bl, 24
+        jmp get_seventh
+        
+is_equal_6:
+        xor ebx, ebx
+
+get_seventh:
+        shl bl, 2
+        or dl, bl
+        xor ebx, ebx
+        mov bl, byte [ecx + 6]
+        cmp bl, 'A'
+        jl decode_number_7
+        sub bl, 65
+        jmp get_eigth
+        
+decode_number_7:
+        cmp bl, '='
+        je is_equal_7
+        sub bl, 24
+        jmp get_eigth
+        
+is_equal_7:
+        xor ebx, ebx
+        
+get_eigth:
+        push ebx
+        shr bl, 3
+        or dl, bl ;inca un byte
+        mov byte [esi], dl
+        inc esi
+        pop ebx
+        shl bl, 5
+        xor edx, edx
+        mov dl, byte [ecx + 7]
+        cmp dl, 'A'
+        jl decode_number_8
+        sub dl, 65
+        jmp last_get
+        
+decode_number_8:
+        cmp dl, '='
+        je is_equal_8
+        sub dl, 24
+        jmp last_get
+        
+is_equal_8:
+        xor edx, edx
+        
+last_get:
+        or bl, dl ;ultimul byte
+        mov byte [esi], bl
+        inc esi
+        dec eax
+        cmp eax, -1
+        jne before_decode_loop
+        je decoded_base32
+        
+before_decode_loop:
+        add ecx, 8
+        jmp decode_loop
+        
+decoded_base32:        
+        mov ecx, esi
+        mov byte [ecx + 1], 0x00
+       
+        leave
+        ret
 
 ;--------------------TASK5-------------------------
 bruteforce_singlebyte_xor:
@@ -465,7 +640,10 @@ task4:
 	; TASK 4: decoding a base32-encoded string
 
 	; TODO TASK 4: call the base32decode function
-	
+	push ecx
+        call base32decode
+        
+        pop ecx
 	push ecx
 	call puts                    ;print resulting string
 	pop ecx
